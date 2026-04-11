@@ -23,5 +23,3 @@ ivy deploy
     <img src="https://raw.githubusercontent.com/Ivy-Interactive/Ivy-Examples/main/project-demos/sliplane-manage/Assets/deploy-button.svg" alt="Deploy your Ivy app on Sliplane" />
   </a>
 </p>
-
-Opens the Sliplane deploy flow. On GitHub, your repo is detected from the page you came from. If `ivy init` already knew your GitHub remote (or `IVY_REPO_URL`), the button link may include `repo` and `branch` so it works outside GitHub too.
