@@ -1,6 +1,7 @@
 using Ivy;
 using Microsoft.EntityFrameworkCore;
 using TestIvyInit.Connections.TestIvyInit;
+using TestIvyInit.Connections.TestIvyInit.Models;
 
 namespace TestIvyInit.Apps;
 
@@ -10,59 +11,82 @@ public class DbCheckApp : AppBase
     public override object? Build()
     {
         var dbFactory = UseService<TestIvyInitContextFactory>();
-        var sampleRows = UseQuery(
-            "db-check.nuget-history",
+        var note = UseState("Hello from deploy");
+
+        var rows = UseQuery(
+            "db-check.verification-rows",
             async ct =>
             {
                 await using var db = dbFactory.CreateDbContext();
-                return await db.NugetHistories
+                return await db.DbVerificationEntries
                     .AsNoTracking()
-                    .OrderByDescending(x => x.Date)
-                    .Take(20)
-                    .Select(x => new NugetRow(
+                    .OrderByDescending(x => x.CreatedAt)
+                    .Take(50)
+                    .Select(x => new RowVm(
                         x.Id,
-                        x.Date.HasValue ? x.Date.Value.ToString("yyyy-MM-dd") : "-",
-                        x.PackageName ?? "-",
-                        x.Downloads))
+                        x.Message,
+                        x.CreatedAt.ToString("yyyy-MM-dd HH:mm:ss 'UTC'zzz")))
                     .ToListAsync(ct);
             });
 
-        var statusLine = sampleRows.Error is null
-            ? $"DB status: connected. Loaded {sampleRows.Value?.Count ?? 0} rows."
-            : $"DB status: failed. {sampleRows.Error.Message}";
-
-        var markdown = BuildTable(sampleRows.Value ?? []);
+        var status = rows.Error is null
+            ? $"Connected. Rows in db_verification_entries: {rows.Value?.Count ?? 0}."
+            : $"Database error: {rows.Error.Message}";
 
         return Layout.Vertical(
             new object?[]
             {
                 Text.H2("Database check"),
-                Text.P("Simple runtime check for TestIvyInit PostgreSQL connection."),
-                Text.Block(statusLine),
-                Text.Markdown(markdown)
+                Text.P(
+                    "Table db_verification_entries is created by EF migrations on startup. Add a row here to confirm read/write against the same database your app uses."),
+                Text.Block(status),
+                Text.P("Note"),
+                note.ToTextInput("Text to store"),
+                new Button(
+                    "Save row",
+                    async () =>
+                    {
+                        var text = string.IsNullOrWhiteSpace(note.Value)
+                            ? $"ping {DateTimeOffset.UtcNow:O}"
+                            : note.Value.Trim();
+
+                        await using var db = dbFactory.CreateDbContext();
+                        db.DbVerificationEntries.Add(new DbVerificationEntry
+                        {
+                            Message = text,
+                            CreatedAt = DateTimeOffset.UtcNow
+                        });
+                        await db.SaveChangesAsync();
+                        rows.Mutator.Revalidate();
+                    },
+                    ButtonVariant.Primary),
+                Text.P("Saved rows (newest first)"),
+                Text.Markdown(BuildTable(rows.Value ?? []))
             });
     }
 
-    private static string BuildTable(IReadOnlyList<NugetRow> rows)
+    private static string BuildTable(IReadOnlyList<RowVm> items)
     {
-        if (rows.Count == 0)
+        if (items.Count == 0)
         {
-            return "No rows returned from `nuget_history`.";
+            return "_No rows yet — add one above._";
         }
 
         var lines = new List<string>
         {
-            "| Id | Date | Package | Downloads |",
-            "| --- | --- | --- | ---: |"
+            "| Id | Created | Message |",
+            "| --- | --- | --- |"
         };
 
-        lines.AddRange(rows.Select(row =>
-            $"| {row.Id} | {row.Date} | {EscapePipes(row.PackageName)} | {row.Downloads?.ToString() ?? "-"} |"));
+        foreach (var r in items)
+        {
+            lines.Add($"| `{r.Id}` | {r.CreatedAt} | {EscapePipes(r.Message)} |");
+        }
 
         return string.Join('\n', lines);
     }
 
-    private static string EscapePipes(string value) => value.Replace("|", "\\|");
+    private static string EscapePipes(string value) => value.Replace("|", "\\|").Replace("\n", " ");
 
-    private sealed record NugetRow(int Id, string Date, string PackageName, long? Downloads);
+    private sealed record RowVm(Guid Id, string Message, string CreatedAt);
 }

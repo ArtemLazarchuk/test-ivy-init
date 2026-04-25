@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using TestIvyInit.Connections.TestIvyInit;
@@ -11,9 +12,11 @@ using TestIvyInit.Connections.TestIvyInit;
 namespace TestIvyInit.Connections.TestIvyInit.Migrations
 {
     [DbContext(typeof(TestIvyInitContext))]
-    partial class TestIvyInitContextModelSnapshot : ModelSnapshot
+    [Migration("20260425135941_AddDbVerificationEntries")]
+    partial class AddDbVerificationEntries
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
