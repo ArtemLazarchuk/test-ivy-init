@@ -17,11 +17,12 @@ public class SimpleNotesApp : AppBase
             async ct =>
             {
                 await using var db = dbFactory.CreateDbContext();
-                return await db.SimpleNotes
-                    .AsNoTracking()
+                // SQLite + EF cannot translate OrderBy on DateTimeOffset; sort in memory after load.
+                var rows = await db.SimpleNotes.AsNoTracking().ToListAsync(ct);
+                return rows
                     .OrderByDescending(n => n.UpdatedAt)
                     .Select(n => new NoteRow(n.Id, n.Text, n.UpdatedAt.ToString("yyyy-MM-dd HH:mm")))
-                    .ToListAsync(ct);
+                    .ToList();
             });
 
         var newText = UseState("");
@@ -30,10 +31,10 @@ public class SimpleNotesApp : AppBase
 
         var children = new List<object?>
         {
-            Text.H2("Нотатки"),
-            Text.P("Додай рядок або натисни «Редагувати», зміни текст і «Зберегти зміни» — список оновлюється одразу."),
-            Text.H4("Нова нотатка"),
-            Layout.Horizontal(newText.ToTextInput("Текст…"), new Button("Додати", async () =>
+            Text.H2("Notes"),
+            Text.P("Add a row or pick Edit on a line, change the text, then Save changes — the list refreshes right away."),
+            Text.H4("New note"),
+            Layout.Horizontal(newText.ToTextInput("Text…"), new Button("Add", async () =>
             {
                 var t = (newText.Value ?? "").Trim();
                 if (string.IsNullOrEmpty(t)) return;
@@ -44,7 +45,7 @@ public class SimpleNotesApp : AppBase
                 newText.Set("");
                 notes.Mutator.Revalidate();
             })),
-            Text.H4("Список"),
+            Text.H4("List"),
         };
 
         if (notes.Error != null)
@@ -52,10 +53,10 @@ public class SimpleNotesApp : AppBase
         else
             children.Add(Text.Markdown(BuildTable(notes.Value ?? [])));
 
-        children.Add(Text.H4("Редагування"));
-        children.Add(editText.ToTextInput("Текст для вибраного рядка…"));
+        children.Add(Text.H4("Edit"));
+        children.Add(editText.ToTextInput("Text for the selected row…"));
         children.Add(Layout.Horizontal(
-            new Button("Зберегти зміни", async () =>
+            new Button("Save changes", async () =>
             {
                 if (!editingId.Value.HasValue) return;
                 var t = (editText.Value ?? "").Trim();
@@ -72,7 +73,7 @@ public class SimpleNotesApp : AppBase
                 editText.Set("");
                 notes.Mutator.Revalidate();
             }, ButtonVariant.Primary),
-            new Button("Скасувати", () =>
+            new Button("Cancel", () =>
             {
                 editingId.Set(null);
                 editText.Set("");
@@ -80,13 +81,13 @@ public class SimpleNotesApp : AppBase
 
         if (notes.Value is { Count: > 0 } list)
         {
-            children.Add(Text.H4("Обрати рядок"));
+            children.Add(Text.H4("Pick a row"));
             foreach (var row in list)
             {
                 var r = row;
                 children.Add(Layout.Horizontal(
                     Text.Inline($"#{r.Id} — {r.UpdatedAtLabel}"),
-                    new Button("Редагувати", () =>
+                    new Button("Edit", () =>
                     {
                         editingId.Set(r.Id);
                         editText.Set(r.Text);
@@ -100,11 +101,11 @@ public class SimpleNotesApp : AppBase
     private static string BuildTable(IReadOnlyList<NoteRow> rows)
     {
         if (rows.Count == 0)
-            return "_Поки порожньо — додай перший рядок вище._";
+            return "_Nothing here yet — add the first row above._";
 
         var lines = new List<string>
         {
-            "| # | Оновлено | Текст |",
+            "| # | Updated | Text |",
             "| --- | --- | --- |"
         };
         foreach (var r in rows)
