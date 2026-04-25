@@ -19,7 +19,7 @@ RUN dotnet build "TestIvyInit.csproj" -c $BUILD_CONFIGURATION -o /app/build --no
 # Publish stage
 FROM build AS publish
 ARG BUILD_CONFIGURATION=Release
-RUN dotnet publish "TestIvyInit.csproj" -c $BUILD_CONFIGURATION -o /app/publish --no-build /p:UseAppHost=false
+RUN dotnet publish "TestIvyInit.csproj" -c $BUILD_CONFIGURATION -o /app/publish
 
 # Final runtime image
 FROM base AS final
