@@ -11,7 +11,7 @@ public class DbCheckApp : AppBase
     public override object? Build()
     {
         var dbFactory = UseService<TestIvyInitContextFactory>();
-        var note = UseState("Hello from deploy");
+        var note = UseState("Hello from dep");
 
         var rows = UseQuery(
             "db-check.verification-rows",
