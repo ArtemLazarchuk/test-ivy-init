@@ -26,6 +26,8 @@ public partial class TestIvyInitContext : DbContext
 
     public virtual DbSet<NugetHistory> NugetHistories { get; set; }
 
+    public virtual DbSet<PersistenceCheckItem> PersistenceCheckItems { get; set; }
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<GithubStargazer>(entity =>
@@ -86,6 +88,13 @@ public partial class TestIvyInitContext : DbContext
             entity.HasKey(e => e.Id).HasName("nuget_history_pkey");
 
             entity.Property(e => e.Date).HasDefaultValueSql("CURRENT_DATE");
+        });
+
+        modelBuilder.Entity<PersistenceCheckItem>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("persistence_check_pkey");
+            entity.Property(e => e.Id).HasDefaultValueSql("gen_random_uuid()");
+            entity.Property(e => e.CreatedAt).HasDefaultValueSql("now()");
         });
 
         OnModelCreatingPartial(modelBuilder);
