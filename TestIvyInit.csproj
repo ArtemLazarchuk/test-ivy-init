@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>net10.0</TargetFramework>
@@ -8,6 +8,7 @@
     <RootNamespace>TestIvyInit</RootNamespace>
     <RestoreUseStaticGraphEvaluation>true</RestoreUseStaticGraphEvaluation>
     <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
+    <UserSecretsId>7a40cdda-b318-475c-aefc-5091dc221731</UserSecretsId>
   </PropertyGroup>
   <ItemGroup>
     <EmbeddedResource Include="Assets/**/*" />
