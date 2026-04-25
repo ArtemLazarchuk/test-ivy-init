@@ -19,7 +19,7 @@ ivy deploy
 ### Deploy in one click
 
 <p align="center">
-  <a href="https://ivy-sliplane-deployment.sliplane.app?repo=https%3A%2F%2Fgithub.com%2FArtemLazarchuk%2Ftest-ivy-init&amp;branch=main">
+  <a href="https://localhost:5010?repo=https%3A%2F%2Fgithub.com%2FArtemLazarchuk%2Ftest-ivy-init&amp;branch=main">
     <img src="https://raw.githubusercontent.com/Ivy-Interactive/Ivy-Examples/main/project-demos/sliplane-manage/Assets/deploy-button.svg" alt="Deploy your Ivy app on Sliplane" />
   </a>
 </p>
