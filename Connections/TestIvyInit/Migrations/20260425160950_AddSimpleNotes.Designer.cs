@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using TestIvyInit.Connections.TestIvyInit;
 
@@ -10,9 +11,11 @@ using TestIvyInit.Connections.TestIvyInit;
 namespace TestIvyInit.Connections.TestIvyInit.Migrations
 {
     [DbContext(typeof(TestIvyInitContext))]
-    partial class TestIvyInitContextModelSnapshot : ModelSnapshot
+    [Migration("20260425160950_AddSimpleNotes")]
+    partial class AddSimpleNotes
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "10.0.5");
